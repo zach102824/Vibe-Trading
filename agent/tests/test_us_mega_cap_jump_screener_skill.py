@@ -14,6 +14,8 @@ from src.agent.skills import SkillsLoader, _parse_frontmatter
 SKILL_DIR = Path(__file__).resolve().parents[1] / "src" / "skills" / "us-mega-cap-jump-screener"
 SKILL_MD = SKILL_DIR / "SKILL.md"
 SCRIPT = SKILL_DIR / "scripts" / "screen_us_mega_cap_jump.py"
+LOCAL_SETUP = SKILL_DIR / "LOCAL_SETUP.md"
+SETUP_SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "setup-us-mega-cap-screener"
 
 
 def _load_screener_module():
@@ -34,10 +36,22 @@ def test_skill_metadata_and_loader_exposure(tmp_path: Path) -> None:
     assert meta["category"] == "analysis"
     assert "US mega-cap 30-day jump screener" in meta["description"]
     assert "not financial advice" in body
+    assert "scripts/setup-us-mega-cap-screener" in body
 
     loader = SkillsLoader(SKILL_DIR.parent, user_skills_dir=tmp_path)
     assert '<skill name="us-mega-cap-jump-screener">' in loader.get_content("us-mega-cap-jump-screener")
     assert "us-mega-cap-jump-screener" in loader.get_descriptions()
+
+
+def test_local_setup_assets_document_clone_and_run_path() -> None:
+    guide = LOCAL_SETUP.read_text(encoding="utf-8")
+    script = SETUP_SCRIPT.read_text(encoding="utf-8")
+
+    assert "git clone" in guide
+    assert "python3 -m venv .venv" in guide
+    assert "screen_us_mega_cap_jump.py --top-n 10" in guide
+    assert "Usage: scripts/setup-us-mega-cap-screener" in script
+    assert "pip install -e" in script
 
 
 def test_select_top_market_caps_sorts_descending() -> None:

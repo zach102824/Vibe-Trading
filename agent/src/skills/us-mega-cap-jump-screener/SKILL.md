@@ -21,6 +21,14 @@ From the repository root:
 python agent/src/skills/us-mega-cap-jump-screener/scripts/screen_us_mega_cap_jump.py --top-n 10
 ```
 
+For first-time local setup after cloning the repo:
+
+```bash
+scripts/setup-us-mega-cap-screener --top-n 10
+```
+
+See `agent/src/skills/us-mega-cap-jump-screener/LOCAL_SETUP.md` for OS-specific clone, virtualenv, and rerun instructions.
+
 Suggested agent prompt:
 
 ```text
