@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+VENV_DIR="${VIBE_SCREENER_VENV:-$ROOT/.venv}"
+TOP_N="5"
+RUN_SMOKE=1
+
+usage() {
+  cat <<USAGE
+Usage: scripts/setup-us-mega-cap-screener [--top-n N] [--no-smoke]
+
+Create a local Python virtual environment, install Vibe-Trading in editable
+mode, and optionally run the US mega-cap jump screener smoke test.
+
+Options:
+  --top-n N     Number of rows for the smoke-test screener output (default: 5)
+  --no-smoke   Install dependencies only; skip the live yfinance smoke test
+  -h, --help   Show this help
+
+Environment:
+  PYTHON              Python binary to use (default: python3, then python)
+  VIBE_SCREENER_VENV  Virtualenv path (default: .venv)
+USAGE
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --top-n)
+      if [[ $# -lt 2 ]]; then
+        printf "missing value for --top-n\n" >&2
+        exit 2
+      fi
+      TOP_N="$2"
+      shift 2
+      ;;
+    --no-smoke)
+      RUN_SMOKE=0
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      printf "unknown option: %s\n" "$1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+if [[ -n "${PYTHON:-}" ]]; then
+  PYTHON_BIN="$PYTHON"
+elif command -v python3 >/dev/null 2>&1; then
+  PYTHON_BIN="python3"
+elif command -v python >/dev/null 2>&1; then
+  PYTHON_BIN="python"
+else
+  printf "python3 or python is required but was not found on PATH\n" >&2
+  exit 1
+fi
+
+printf "Using Python: %s\n" "$PYTHON_BIN"
+printf "Virtualenv: %s\n" "$VENV_DIR"
+
+if [[ ! -x "$VENV_DIR/bin/python" ]]; then
+  "$PYTHON_BIN" -m venv "$VENV_DIR"
+fi
+
+"$VENV_DIR/bin/python" -m pip install --upgrade pip
+"$VENV_DIR/bin/python" -m pip install -e "$ROOT"
+
+cat <<NEXT
+
+Local setup complete.
+
+To activate this environment:
+  source "$VENV_DIR/bin/activate"
+
+To run the screener:
+  "$VENV_DIR/bin/python" "$ROOT/agent/src/skills/us-mega-cap-jump-screener/scripts/screen_us_mega_cap_jump.py" --top-n 10
+
+NEXT
+
+if [[ "$RUN_SMOKE" -eq 1 ]]; then
+  "$VENV_DIR/bin/python" "$ROOT/agent/src/skills/us-mega-cap-jump-screener/scripts/screen_us_mega_cap_jump.py" --top-n "$TOP_N"
+fi
+

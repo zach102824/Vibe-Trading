@@ -79,6 +79,7 @@ include = ["src*", "backtest*", "cli*"]
 [tool.setuptools.package-data]
 "src" = [
     "skills/**/*.md",
+    "skills/**/*.py",
     "skills/**/*.yaml",
     "skills/**/*.json",
     "providers/*.json",
