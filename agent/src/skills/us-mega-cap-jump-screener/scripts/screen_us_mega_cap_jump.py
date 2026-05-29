@@ -8,6 +8,7 @@ market-data credentials.
 from __future__ import annotations
 
 import argparse
+import logging
 import math
 from dataclasses import dataclass
 from typing import Any, Iterable
@@ -147,24 +148,25 @@ def fetch_company_snapshots(symbols: Iterable[str]) -> dict[str, CompanySnapshot
 
     import yfinance as yf
 
+    logging.getLogger("yfinance").setLevel(logging.CRITICAL)
+
     snapshots: dict[str, CompanySnapshot] = {}
     for symbol in symbols:
         ticker = yf.Ticker(symbol)
         info: dict[str, Any] = {}
-        fast_info: dict[str, Any] = {}
-        try:
-            fast_info = dict(ticker.fast_info or {})
-        except Exception:
-            fast_info = {}
         try:
             info = dict(ticker.info or {})
         except Exception:
             info = {}
 
-        market_cap = _finite_float(
-            _info_value(fast_info, "marketCap", "market_cap")
-            or _info_value(info, "marketCap", "market_cap")
-        )
+        market_cap = _finite_float(_info_value(info, "marketCap", "market_cap"))
+        if market_cap is None:
+            fast_info: dict[str, Any] = {}
+            try:
+                fast_info = dict(ticker.fast_info or {})
+            except Exception:
+                fast_info = {}
+            market_cap = _finite_float(_info_value(fast_info, "marketCap", "market_cap"))
         snapshots[symbol] = CompanySnapshot(
             symbol=symbol,
             market_cap=market_cap,
@@ -195,6 +197,8 @@ def download_price_history(symbols: list[str], period: str) -> dict[str, pd.Data
     """Download adjusted daily OHLCV bars from yfinance."""
 
     import yfinance as yf
+
+    logging.getLogger("yfinance").setLevel(logging.CRITICAL)
 
     raw = yf.download(
         symbols,
