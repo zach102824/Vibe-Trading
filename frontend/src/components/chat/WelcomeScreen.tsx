@@ -51,6 +51,11 @@ const CATEGORIES: Category[] = [
         desc: "Black-Scholes pricing with Delta/Gamma/Theta/Vega",
         prompt: "Calculate option Greeks using Black-Scholes: spot=100, strike=105, risk-free rate=3%, vol=25%, expiry=90 days, analyze Delta/Gamma/Theta/Vega",
       },
+      {
+        title: "US Mega-Cap Jump Screener",
+        desc: "Top-50 US market-cap watchlist for possible 30-day upside",
+        prompt: "Load the us-mega-cap-jump-screener skill and rank the top 50 US-listed stocks by market cap for the strongest probability of a 30-day upside jump. Show the top 10, explain the score drivers, and include risk/catalyst checks.",
+      },
     ],
   },
   {
